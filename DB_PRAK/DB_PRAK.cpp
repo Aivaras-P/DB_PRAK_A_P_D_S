@@ -443,6 +443,32 @@ function istrintiSkelbima(id) {
                 html << "<p><strong>Zanras:</strong> " << zanras << "</p>";
             }
 
+            // Gauti žaidimo apibūdinimą, amžių ir turinio aprašą pagal ZaidimoID
+            std::unique_ptr<sql::PreparedStatement> game_desc_stmt(
+                conn->prepareStatement("SELECT ApibudinimoID FROM zaidimas WHERE ZaidimoID=?"));
+            game_desc_stmt->setInt(1, zaidimoId);
+            std::unique_ptr<sql::ResultSet> game_desc_res(game_desc_stmt->executeQuery());
+
+            if (game_desc_res->next()) {
+                int apibudinimoId = game_desc_res->getInt("ApibudinimoID");
+
+                // Dabar, užklausti apibūdinimą, amžių ir turinio aprašą
+                std::unique_ptr<sql::PreparedStatement> desc_stmt(
+                    conn->prepareStatement("SELECT Koks_Amzius, Turinio_Aprasas FROM apibudinimas WHERE ApibudinimoID=?"));
+                desc_stmt->setInt(1, apibudinimoId);
+                std::unique_ptr<sql::ResultSet> desc_res(desc_stmt->executeQuery());
+
+                if (desc_res->next()) {
+                    std::string amzius = static_cast<std::string>(desc_res->getString("Koks_Amzius"));
+                    std::string turinio_aprasas = static_cast<std::string>(desc_res->getString("Turinio_Aprasas"));
+
+                    // Rodome apibūdinimo informaciją
+                    html << "<h3>Zaidimo apibudinimas</h3>";
+                    html << "<p><strong>Amzius:</strong> " << amzius << "</p>";
+                    html << "<p><strong>Turinio aprasas:</strong> " << turinio_aprasas << "</p>";
+                }
+            }
+
             html << "<a href='/'>Gristi i pradzia</a>";
             html << "</body></html>";
 
