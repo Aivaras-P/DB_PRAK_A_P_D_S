@@ -217,7 +217,6 @@ int main() {
 
         std::ostringstream html;
         html << "<html><body>";
-        html << R"(<button onclick='window.history.back()' style = "margin-bottom: 10px;"> Atgal</button>)";
         html << "<h2>Rezultatai pagal: " << query << "</h2>";
 
         try {
