@@ -1,4 +1,4 @@
-﻿#include <string>
+#include <string>
 #include <map>
 #include <vector>
 #include <memory>
@@ -8,7 +8,7 @@
 #include <sstream>
 #include <cstdlib>
 
-// === Naudotojo klasės ===
+
 class Naudotojas {
 protected:
     std::string vardas;
@@ -31,7 +31,7 @@ public:
     std::string gautiRole() const override { return "Administratorius"; }
 };
 
-// === Sesijų saugojimas ===
+
 std::unordered_map<std::string, std::unique_ptr<Naudotojas>> aktyviosSesijos;
 
 std::string generuotiSesijosID() {
@@ -135,7 +135,7 @@ int main() {
 <button onclick='window.history.back()' style = "margin-bottom: 10px;"> Atgal</button>
             <h2>Prisijungimas</h2>
             <form method='POST' action='/login'>
-                Vartotojo vardas: <input name='username'><br>
+                Naudotojo vardas: <input name='username'><br>
                 Slaptazodis: <input type='password' name='password'><br>
                 <input type='submit' value='Prisijungti'>
             </form>
@@ -174,7 +174,7 @@ int main() {
                     aktyviosSesijos[session_id] = std::make_unique<RegistruotasNaudotojas>(username);
                 }
                 else {
-                    return crow::response(403, "Tik registruoti vartotojai gali prisijungti.");
+                    return crow::response(403, "Tik registruoti naudotojai gali prisijungti.");
                 }
 
                 crow::response resp;
@@ -315,6 +315,8 @@ int main() {
                     html << "<p><strong>Kaina:</strong> " << kaina << " €</p>";
                     html << "<p><strong>Kiekis:</strong> " << kiekis << "</p>";
                     html << "<p><strong>Aprasymas:</strong> " << aprasymas << "</p>";
+
+
 
             // Gauti session_id ir patikrinti, ar naudotojas prisijungęs
             std::string session_id = req.get_header_value("Cookie");
@@ -469,8 +471,11 @@ function istrintiSkelbima(id) {
                 }
             }
 
+
             html << "<a href='/'>Gristi i pradzia</a>";
             html << "</body></html>";
+
+
 
             return crow::response(html.str());
         }
@@ -671,7 +676,7 @@ function istrintiSkelbima(id) {
             std::unique_ptr<sql::ResultSet> zaidimai_res(zaidimai_stmt->executeQuery());
 
             std::ostringstream html;
-            html << R"(<button onclick='window.history.back()' style = "margin-bottom: 10px;"> Atgal</button>)";
+            html << R"(<button onclick="window.location.href='/'" style="margin-bottom: 10px;">Atgal</button>)";
             html << "<h1>Mano skelbimai</h1>";
             if (!skelbimai_res->next()) {
                 html << "<p style='color:gray;'>Siuo metu neturite sukurtu skelbimu.</p>";
@@ -849,10 +854,17 @@ function istrintiSkelbima(id) {
             sql::Properties props({ {"user", "root"}, {"password", "Asdfghjkl123"} });
             std::unique_ptr<sql::Connection> conn(driver->connect(url, props));
 
+            std::unique_ptr<sql::PreparedStatement> stmt1(
+                conn->prepareStatement("DELETE FROM isimintinas_skelbimas WHERE SkelbimoID=?"));
+            stmt1->setInt(1, id);
+            stmt1->execute();
+
             std::unique_ptr<sql::PreparedStatement> stmt(
                 conn->prepareStatement("DELETE FROM skelbimas WHERE SkelbimoID=?"));
             stmt->setInt(1, id);
             stmt->execute();
+
+
 
             
 
