@@ -432,32 +432,126 @@ function istrintiSkelbima(id) {
 
             if (game_res->next()) {
                 std::string pavadinimas = std::string(game_res->getString("Pavadinimas"));
-                std::string kurejas = std::string(game_res->getString("Kurejas"));
-                std::string leidejas = std::string(game_res->getString("Leidejas"));
                 std::string isleidimo_data = std::string(game_res->getString("Isleidimo_Data"));
-                std::string zanras = std::string(game_res->getString("Zanras"));
 
                 html << "<h3>Zaidimo informacija</h3>";
                 html << "<p><strong>Pavadinimas:</strong> " << pavadinimas << "</p>";
-                html << "<p><strong>Kurejas:</strong> " << kurejas << "</p>";
-                html << "<p><strong>Leidejas:</strong> " << leidejas << "</p>";
                 html << "<p><strong>Isleidimo data:</strong> " << isleidimo_data << "</p>";
-                html << "<p><strong>Zanras:</strong> " << zanras << "</p>";
+
+                // Platformos gavimas
+                std::unique_ptr<sql::PreparedStatement> platform_stmt(
+                    conn->prepareStatement("SELECT p.Platformos_Pavadinimas FROM Platforma p "
+                        "JOIN Zaidimu_Platformos zp ON p.PlatformosID = zp.PlatformosID "
+                        "WHERE zp.ZaidimoID = ?"));
+                platform_stmt->setInt(1, zaidimoId);
+                std::unique_ptr<sql::ResultSet> platform_res(platform_stmt->executeQuery());
+
+                std::vector<std::string> platformos;
+                while (platform_res->next()) {
+                    platformos.push_back(std::string(platform_res->getString("Platformos_Pavadinimas")));
+                }
+                if (!platformos.empty()) {
+                    std::ostringstream oss;
+                    for (size_t i = 0; i < platformos.size(); ++i) {
+                        oss << platformos[i];
+                        if (i != platformos.size() - 1) {
+                            oss << ", ";
+                        }
+                    }
+                    html << "<p><strong>Platformos:</strong> " << oss.str() << "</p>";
+                }
+                else {
+                    html << "<p><strong>Platformos:</strong> nerasta</p>"; 
+                }
+
+                // Žanrai gavimas
+                std::unique_ptr<sql::PreparedStatement> zanras_stmt(
+                    conn->prepareStatement("SELECT z.Zanro_Pavadinimas FROM Zanras z "
+                        "JOIN Zaidimu_Zanrai zz ON z.ZanroID = zz.ZanroID "
+                        "WHERE zz.ZaidimoID = ?"));
+                zanras_stmt->setInt(1, zaidimoId);
+                std::unique_ptr<sql::ResultSet> zanras_res(zanras_stmt->executeQuery());
+
+                std::vector<std::string> zanrai;
+                while (zanras_res->next()) {
+                    zanrai.push_back(std::string(zanras_res->getString("Zanro_Pavadinimas")));
+                }
+                if (!zanrai.empty()) {
+                    std::ostringstream oss;
+                    for (size_t i = 0; i < zanrai.size(); ++i) {
+                        oss << zanrai[i];
+                        if (i != zanrai.size() - 1) {
+                            oss << ", ";
+                        }
+                    }
+                    html << "<p><strong>Zanrai:</strong> " << oss.str() << "</p>";
+                }
+                else {
+                    html << "<p><strong>Zanrai:</strong> nerasta</p>"; 
+                }
+
+                // Kūrėjai gavimas
+                std::unique_ptr<sql::PreparedStatement> kurejas_stmt(
+                    conn->prepareStatement("SELECT k.Kurejo_Kompanijos_Pavadinimas FROM Kurejas k "
+                        "JOIN Zaidimo_Kurejai zk ON k.KurejoID = zk.KurejoID "
+                        "WHERE zk.ZaidimoID = ?"));
+                kurejas_stmt->setInt(1, zaidimoId);
+                std::unique_ptr<sql::ResultSet> kurejas_res(kurejas_stmt->executeQuery());
+
+                std::vector<std::string> kurejai;
+                while (kurejas_res->next()) {
+                    kurejai.push_back(std::string(kurejas_res->getString("Kurejo_Kompanijos_Pavadinimas")));
+                }
+                if (!kurejai.empty()) {
+                    std::ostringstream oss;
+                    for (size_t i = 0; i < kurejai.size(); ++i) {
+                        oss << kurejai[i];
+                        if (i != kurejai.size() - 1) {
+                            oss << ", ";
+                        }
+                    }
+                    html << "<p><strong>Kurejai:</strong> " << oss.str() << "</p>";
+                }
+                else {
+                    html << "<p><strong>Kurejai:</strong> nerasta</p>"; 
+                }
+
+                // Kalbos gavimas
+                std::unique_ptr<sql::PreparedStatement> kalba_stmt(
+                    conn->prepareStatement("SELECT k.Kalbos_Pavadinimas FROM Kalba k "
+                        "JOIN Zaidimu_Kalbos zk ON k.KalbosID = zk.KalbosID "
+                        "WHERE zk.ZaidimoID = ?"));
+                kalba_stmt->setInt(1, zaidimoId);
+                std::unique_ptr<sql::ResultSet> kalba_res(kalba_stmt->executeQuery());
+
+
+                std::vector<std::string> kalbos;
+                while (kalba_res->next()) {
+                    kalbos.push_back(std::string(kalba_res->getString("Kalbos_Pavadinimas")));
+                }
+                if (!kalbos.empty()) {
+                    std::ostringstream oss;
+                    for (size_t i = 0; i < kalbos.size(); ++i) {
+                        oss << kalbos[i];
+                        if (i != kalbos.size() - 1) {
+                            oss << ", ";
+                        }
+                    }
+                    html << "<p><strong>Kalbos:</strong> " << oss.str() << "</p>";
+                }
+                else {
+                    html << "<p><strong>Kalbos:</strong> nerasta</p>"; 
+                }
             }
 
-            // Gauti žaidimo apibūdinimą, amžių ir turinio aprašą pagal ZaidimoID
-            std::unique_ptr<sql::PreparedStatement> game_desc_stmt(
-                conn->prepareStatement("SELECT ApibudinimoID FROM zaidimas WHERE ZaidimoID=?"));
-            game_desc_stmt->setInt(1, zaidimoId);
-            std::unique_ptr<sql::ResultSet> game_desc_res(game_desc_stmt->executeQuery());
 
-            if (game_desc_res->next()) {
-                int apibudinimoId = game_desc_res->getInt("ApibudinimoID");
+
+
 
                 // Dabar, užklausti apibūdinimą, amžių ir turinio aprašą
                 std::unique_ptr<sql::PreparedStatement> desc_stmt(
-                    conn->prepareStatement("SELECT Koks_Amzius, Turinio_Aprasas FROM apibudinimas WHERE ApibudinimoID=?"));
-                desc_stmt->setInt(1, apibudinimoId);
+                    conn->prepareStatement("SELECT Koks_Amzius, Turinio_Aprasas FROM apibudinimas WHERE ZaidimoID=?"));
+                desc_stmt->setInt(1, zaidimoId);
                 std::unique_ptr<sql::ResultSet> desc_res(desc_stmt->executeQuery());
 
                 if (desc_res->next()) {
@@ -469,7 +563,11 @@ function istrintiSkelbima(id) {
                     html << "<p><strong>Amzius:</strong> " << amzius << "</p>";
                     html << "<p><strong>Turinio aprasas:</strong> " << turinio_aprasas << "</p>";
                 }
-            }
+
+
+
+
+           
 
 
             html << "<a href='/'>Gristi i pradzia</a>";
